@@ -1,6 +1,8 @@
 import json
 import os
 from constants import Constants
+import Utilities as u
+import numpy as np
 
 
 class DataFiles:
@@ -40,3 +42,32 @@ class DataFiles:
         with open(os.path.join(self.co.DATA_ROOT, filename), 'a') as f:
             json_s = json.dumps(entry, indent=indent)
             f.write(json_s)
+            f.write('\n')
+
+    def store_in_archive(self, arr, sentence, arr_type):
+        if type(arr) != np.ndarray:
+            raise ValueError(('Can only store numpy.ndarray.\
+                                Was passed: ', type(arr)))
+
+        accent, gender, speaker_id, text_type, sentence_number = \
+            u.path2info(sentence['audio'])
+
+        filename = os.path.join('{}_{}{}'.format(arr_type, text_type,
+                                                 sentence_number))
+
+        root = self.create_or_return((self.co.DATA_ROOT, arr_type, accent,
+                                     '{}{}'.format(gender, speaker_id)))
+
+        file = os.path.join(root, filename)
+        np.save(file, arr)
+
+        return file
+
+    def create_or_return(self, path_parts_tuple):
+        path = path_parts_tuple[0]
+        for part in path_parts_tuple[1:]:
+            path = os.path.join(path, part)
+            if not os.path.exists(path):
+                os.mkdir(path)
+
+        return path

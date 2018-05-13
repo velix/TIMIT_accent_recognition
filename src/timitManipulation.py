@@ -95,7 +95,7 @@ class TIMIT:
         '''
         Creates the dictionary with info for each speaker
         '''
-        gender, speaker_id, _, _ = u.path2info(speaker_files[0][0])
+        _, gender, speaker_id, _, _ = u.path2info(speaker_files[0][0])
 
         sentences_list = self._make_speaker_sentences_dic(speaker_files)
 
@@ -113,7 +113,7 @@ class TIMIT:
             audio = files[2]
             word_transcription = files[3]
 
-            _, _, text_type, sentence_number = u.path2info(files[0])
+            _, _, _, text_type, sentence_number = u.path2info(files[0])
 
             sentence_dir = {"text_type": text_type, "number": sentence_number,
                             "phoneme_transcription": phoneme_transcription,

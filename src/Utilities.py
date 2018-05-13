@@ -19,7 +19,7 @@ def path2info(path):
     utterance = filename[:-4]
     text_type = utterance[:2]
     sentence_number = utterance[2:]
-    return gender, speaker_id, text_type, sentence_number
+    return accent, gender, speaker_id, text_type, sentence_number
 
 
 def loadAudio(filename):
