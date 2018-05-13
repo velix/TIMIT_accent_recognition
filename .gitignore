@@ -1,0 +1,5 @@
+data/
+pysndfile-1.1.0/
+timit/
+venv/
+src/__pycache__
