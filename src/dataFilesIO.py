@@ -52,8 +52,8 @@ class DataFiles:
         accent, gender, speaker_id, text_type, sentence_number = \
             u.path2info(sentence['audio'])
 
-        filename = os.path.join('{}_{}{}'.format(arr_type, text_type,
-                                                 sentence_number))
+        filename = os.path.join('{}_{}{}.npy'.format(arr_type, text_type,
+                                                     sentence_number))
 
         root = self.create_or_return((self.co.DATA_ROOT, arr_type, accent,
                                      '{}{}'.format(gender, speaker_id)))

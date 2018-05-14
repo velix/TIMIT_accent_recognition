@@ -35,7 +35,7 @@ def main():
                 #   the speaker use it to extract accent, speaker and sentence
                 #   id to construct a hierarchy at the end of which the archive
                 #   is stored
-                samples_path = io.store_in_archive(samples, sentence, 'sample')
+                samples_path = io.store_in_archive(samples, sentence, 'samples')
                 mspec_path = io.store_in_archive(mspec, sentence, 'mspec')
 
                 sentence["samples_path"] = samples_path
