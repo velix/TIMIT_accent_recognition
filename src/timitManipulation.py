@@ -109,6 +109,7 @@ class TIMIT:
         '''
         sentences = []
         for files in speaker_files:
+            phoneme_transcription, text_transcription, audio, word_transcription = '', '', '', ''
             for file in files:
                 if file.endswith('.phn'):
                     phoneme_transcription = file

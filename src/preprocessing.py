@@ -51,7 +51,7 @@ class Preprocessor:
                                                            sr=samplingrate)
 
                     # Stores the param into an npz object
-                    # and return the path to the stored file
+                    # and returns the path to the stored file.
                     # sentence['audio'] can give the path of the audio file for
                     #   the speaker use it to extract accent, speaker and
                     #   sentence id to construct a hierarchy at the end of
@@ -120,7 +120,8 @@ class Preprocessor:
 
 if __name__ == '__main__':
     preprocessor = Preprocessor()
-    if not preprocessor.path_hierarchy_exists():
+    if not preprocessor.path_hierarchy_exists() or (
+            not preprocessor.path_hierarch_with_features_exists()):
         preprocessor.create_hierarchies()
 
     stored_into = preprocessor.transform_data()
