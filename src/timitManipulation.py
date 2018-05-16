@@ -1,12 +1,13 @@
 import os
-import Utilities as u
-from constants import Constants
+from helper import Utilities
+from helper import Constants
 
 
 class TIMIT:
 
     def __init__(self, test=False):
         co = Constants()
+        self.u = Utilities
         if test:
             self.SET_ROOT = co.TEST_ROOT
         self.SET_ROOT = co.TRAIN_ROOT
@@ -95,7 +96,7 @@ class TIMIT:
         '''
         Creates the dictionary with info for each speaker
         '''
-        _, gender, speaker_id, _, _ = u.path2info(speaker_files[0][0])
+        _, gender, speaker_id, _, _ = self.u.path2info(speaker_files[0][0])
 
         sentences_list = self._make_speaker_sentences_dic(speaker_files)
 
@@ -113,7 +114,7 @@ class TIMIT:
             audio = files[2]
             word_transcription = files[3]
 
-            _, _, _, text_type, sentence_number = u.path2info(files[0])
+            _, _, _, text_type, sentence_number = self.u.path2info(files[0])
 
             sentence_dir = {"text_type": text_type, "number": sentence_number,
                             "phoneme_transcription": phoneme_transcription,

@@ -27,11 +27,23 @@ class Constants:
         self.OUTPUT_SIZE = 8
         self.LEARNING_RATE = 0.001
         self.BATCH_SIZE = 32
-        self.EPOCHS = 1
+        self.EPOCHS = 10
 
     def _create_dir(self, dir):
         if not os.path.exists(dir):
             os.mkdir(dir)
+
+    def net_params_to_dictionary(self):
+        return {
+            'EPOCHS': self.EPOCHS,
+            'LEARNING_RATE': self.LEARNING_RATE,
+            'BATCH_SIZE': self.BATCH_SIZE,
+            'PAD_SIZE': self.PAD_SIZE,
+            'DROPOUT_RATE': self.DROPOUT_RATE,
+            'L2_REG_RATE': self.L2_REG_RATE,
+            'OUTPUT_SIZE': self.OUTPUT_SIZE,
+
+        }
 
 
 class Utilities:

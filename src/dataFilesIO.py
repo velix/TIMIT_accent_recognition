@@ -1,7 +1,7 @@
 import json
 import os
-from constants import Constants
-import Utilities as u
+from helper import Constants
+from helper import Utilities
 import numpy as np
 
 
@@ -9,6 +9,7 @@ class DataFiles:
 
     def __init__(self):
         self.co = Constants()
+        self.u = Utilities
 
     def export_to_json_lines(self, hierarchy, filename, indent=None):
         if not filename.endswith('.json'):
@@ -50,7 +51,7 @@ class DataFiles:
                                 Was passed: ', type(arr)))
 
         accent, gender, speaker_id, text_type, sentence_number = \
-            u.path2info(sentence['audio'])
+            self.u.path2info(sentence['audio'])
 
         filename = os.path.join('{}_{}{}.npy'.format(arr_type, text_type,
                                                      sentence_number))
