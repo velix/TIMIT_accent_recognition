@@ -96,7 +96,7 @@ class Preprocessor:
 
         targets_int = self._targets_to_ints(targets)
 
-        stored_into = self._store_data('train', samples, targets_int, targets)
+        stored_into = self._store_data(set_name, samples, targets_int, targets)
 
         return stored_into
 
@@ -109,9 +109,9 @@ class Preprocessor:
 
         return out
 
-    def _store_data(self, set_type, samples, targets_int, targets):
+    def _store_data(self, set_name, samples, targets_int, targets):
 
-        filename = os.path.join(self.co.DATA_ROOT, 'train.npz')
+        filename = os.path.join(self.co.DATA_ROOT, '{}.npz'.format(set_name))
         np.savez(filename, X=samples, Y=targets_int,
                  Y_string=targets)
 

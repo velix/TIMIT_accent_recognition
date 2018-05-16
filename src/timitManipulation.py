@@ -7,7 +7,7 @@ class TIMIT:
 
     def __init__(self, test=False):
         co = Constants()
-        self.u = Utilities
+        self.u = Utilities()
         if test:
             self.SET_ROOT = co.TEST_ROOT
         self.SET_ROOT = co.TRAIN_ROOT
