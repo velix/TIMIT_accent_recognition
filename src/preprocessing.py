@@ -70,7 +70,7 @@ class Preprocessor:
                                               'timit_train_samples.json')
             print('\t\tStored')
 
-        print('Hierarchy stores in {}'.format('timit_train_samples.json'))
+        print('Hierarchy stored in {}'.format('timit_train_samples.json'))
 
     def transform_data(self, set_name='train'):
         '''

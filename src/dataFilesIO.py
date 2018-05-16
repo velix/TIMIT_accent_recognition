@@ -9,7 +9,7 @@ class DataFiles:
 
     def __init__(self):
         self.co = Constants()
-        self.u = Utilities
+        self.u = Utilities()
 
     def export_to_json_lines(self, hierarchy, filename, indent=None):
         if not filename.endswith('.json'):

@@ -109,10 +109,17 @@ class TIMIT:
         '''
         sentences = []
         for files in speaker_files:
-            phoneme_transcription = files[0]
-            text_transcription = files[1]
-            audio = files[2]
-            word_transcription = files[3]
+            for file in files:
+                if file.endswith('.phn'):
+                    phoneme_transcription = file
+                elif file.endswith('.txt'):
+                    text_transcription = file
+                elif file.endswith('.wav'):
+                    audio = file
+                elif file.endswith('.wrd'):
+                    word_transcription = file
+                else:
+                    raise ValueError('File of uknown type encountered: ', file)
 
             _, _, _, text_type, sentence_number = self.u.path2info(files[0])
 
