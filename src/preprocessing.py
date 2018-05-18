@@ -15,7 +15,7 @@ class Preprocessor:
         self.co = Constants()
         self.io = DataFiles()
 
-        if set_name == 'test':
+        if self.SET_NAME == 'test':
             self.tim = TIMIT(test=True)
         else:
             self.tim = TIMIT()

@@ -10,7 +10,8 @@ class TIMIT:
         self.u = Utilities()
         if test:
             self.SET_ROOT = co.TEST_ROOT
-        self.SET_ROOT = co.TRAIN_ROOT
+        else:
+            self.SET_ROOT = co.TRAIN_ROOT
 
     def _get_accent_paths(self):
         '''
