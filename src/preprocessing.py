@@ -10,33 +10,40 @@ import librosa
 
 class Preprocessor:
 
-    def __init__(self):
+    def __init__(self, set_name):
+        self.SET_NAME = set_name
         self.co = Constants()
         self.io = DataFiles()
-        self.tim = TIMIT()
+
+        if set_name == 'test':
+            self.tim = TIMIT(test=True)
+        else:
+            self.tim = TIMIT()
+
         self.u = Utilities()
 
     def data_exists(self):
-        return os.path.exists(os.path.join(self.co.DATA_ROOT, 'train.npz'))
+        filename = '{}.npz'.format(self.SET_NAME)
+        return os.path.exists(os.path.join(self.co.DATA_ROOT, filename))
 
     def path_hierarchy_exists(self):
-        return os.path.exists(os.path.join(self.co.DATA_ROOT,
-                              'timit_train_path_hierarchy.json'))
+        filename = 'timit_{}_path_hierarchy.json'.format(self.SET_NAME)
+        return os.path.exists(os.path.join(self.co.DATA_ROOT, filename))
 
-    def path_hierarch_with_features_exists(self):
-        return os.path.exists(os.path.join(self.co.DATA_ROOT,
-                              'timit_train_samples.json'))
+    def path_hierarchy_with_features_exists(self):
+        filename = 'timit_{}_samples.json'.format(self.SET_NAME)
+        return os.path.exists(os.path.join(self.co.DATA_ROOT, filename))
 
-    def create_hierarchies(self, set_name='train'):
+    def create_hierarchies(self):
         print('Creating path hierarchy...')
         hierarchy = self.tim.create_paths_hierarchy()
 
         print('Exporting path hierarchy...')
-        self.io.export_to_json_lines(hierarchy,
-                                     'timit_train_path_hierarchy.json')
+        hierarchy_filename = 'timit_{}_path_hierarchy.json'.format(self.SET_NAME)
+        self.io.export_to_json_lines(hierarchy, hierarchy_filename)
 
         print('Creating training samples and mspec features...')
-        for accent in self.io.import_from_json_lines('timit_train_path_hierarchy.json'):
+        for accent in self.io.import_from_json_lines(hierarchy_filename):
             print('\tFor accent: ', accent['accent'])
             speakers = accent['speakers']
 
@@ -66,20 +73,20 @@ class Preprocessor:
                     sentence["mspec_path"] = mspec_path
 
             print('\t\tAttempting to store entry')
-            self.io.export_entry_to_json_line(accent,
-                                              'timit_train_samples.json')
+            samples_filename = 'timit_{}_samples.json'.format(self.SET_NAME)
+            self.io.export_entry_to_json_line(accent, samples_filename)
             print('\t\tStored')
 
-        print('Hierarchy stored in {}'.format('timit_train_samples.json'))
+        print('Hierarchy stored in {}'.format(hierarchy_filename))
 
-    def transform_data(self, set_name='train'):
+    def transform_data(self):
         '''
         Reads an already created directory of paths
         and loads the specified mspec features.
         Returns the utterances and their accent
         '''
         entries = self.io.import_from_json_lines(
-                'timit_{}_samples.json'.format(set_name))
+                'timit_{}_samples.json'.format(self.SET_NAME))
 
         samples, targets = [], []
 
@@ -96,7 +103,7 @@ class Preprocessor:
 
         targets_int = self._targets_to_ints(targets)
 
-        stored_into = self._store_data(set_name, samples, targets_int, targets)
+        stored_into = self._store_data(samples, targets_int, targets)
 
         return stored_into
 
@@ -109,9 +116,9 @@ class Preprocessor:
 
         return out
 
-    def _store_data(self, set_name, samples, targets_int, targets):
+    def _store_data(self, samples, targets_int, targets):
 
-        filename = os.path.join(self.co.DATA_ROOT, '{}.npz'.format(set_name))
+        filename = os.path.join(self.co.DATA_ROOT, '{}.npz'.format(self.SET_NAME))
         np.savez(filename, X=samples, Y=targets_int,
                  Y_string=targets)
 
@@ -119,9 +126,9 @@ class Preprocessor:
 
 
 if __name__ == '__main__':
-    preprocessor = Preprocessor()
+    preprocessor = Preprocessor('test')
     if not preprocessor.path_hierarchy_exists() or (
-            not preprocessor.path_hierarch_with_features_exists()):
+            not preprocessor.path_hierarchy_with_features_exists()):
         preprocessor.create_hierarchies()
 
     stored_into = preprocessor.transform_data()
