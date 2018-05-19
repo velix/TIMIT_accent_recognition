@@ -250,7 +250,7 @@ class Preprocessor:
 
 
 if __name__ == '__main__':
-    preprocessor = Preprocessor('test')
+    preprocessor = Preprocessor('train')
     if not preprocessor.path_hierarchy_exists() or (
             not preprocessor.path_hierarchy_with_features_exists()):
         preprocessor.create_hierarchies()
