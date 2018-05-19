@@ -45,7 +45,7 @@ class DataFiles:
             f.write(json_s)
             f.write('\n')
 
-    def store_in_archive(self, arr, sentence, arr_type):
+    def store_in_archive(self, arr, sentence, set_name, arr_type):
         if type(arr) != np.ndarray:
             raise ValueError(('Can only store numpy.ndarray.\
                                 Was passed: ', type(arr)))
@@ -56,8 +56,8 @@ class DataFiles:
         filename = os.path.join('{}_{}{}.npy'.format(arr_type, text_type,
                                                      sentence_number))
 
-        root = self.create_or_return((self.co.DATA_ROOT, arr_type, accent,
-                                     '{}{}'.format(gender, speaker_id)))
+        root = self.create_or_return((self.co.DATA_ROOT, set_name, arr_type,
+                                     accent, '{}{}'.format(gender, speaker_id)))
 
         file = os.path.join(root, filename)
         np.save(file, arr)

@@ -64,9 +64,9 @@ class Preprocessor:
                     #   sentence id to construct a hierarchy at the end of
                     #   which the archive is stored
                     samples_path = self.io.store_in_archive(samples, sentence,
-                                                            'samples')
+                                                            self.SET_NAME, 'samples')
                     mspec_path = self.io.store_in_archive(mspec, sentence,
-                                                          'mspec')
+                                                          self.SET_NAME, 'mspec')
 
                     sentence["samples_path"] = samples_path
                     sentence["audio_sr"] = samplingrate
@@ -126,7 +126,7 @@ class Preprocessor:
 
 
 if __name__ == '__main__':
-    preprocessor = Preprocessor('test')
+    preprocessor = Preprocessor('train')
     if not preprocessor.path_hierarchy_exists() or (
             not preprocessor.path_hierarchy_with_features_exists()):
         preprocessor.create_hierarchies()
