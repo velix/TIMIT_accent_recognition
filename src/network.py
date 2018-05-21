@@ -18,7 +18,7 @@ from helper import Logging
 
 co = Constants()
 io = DataFiles()
-preprocessor = Preprocessor()
+preprocessor = Preprocessor('train')
 logger = Logging()
 
 
@@ -60,6 +60,10 @@ def add_full_convolutional_layer(model):
 
 
 train_x, train_y, accents = load_data('train')
+print('origi: ', np.shape(train_x), np.shape(train_y))
+train_x = preprocessor.add_noise(train_x)
+train_y = np.concatenate((train_y, train_y), axis=0)
+print('noisy: ', np.shape(train_x), np.shape(train_y))
 
 # Turn targets to categorical, for use with categorical_crossentropy
 train_y = to_categorical(train_y)

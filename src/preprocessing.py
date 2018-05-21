@@ -58,6 +58,7 @@ class Preprocessor:
                     samples, samplingrate = self.u.loadAudio(audio)
                     mspec = librosa.feature.melspectrogram(samples,
                                                            sr=samplingrate)
+                    log_mspec = librosa.core.amplitude_to_db(mspec)
 
                     # Stores the param into an npz object
                     # and returns the path to the stored file.
@@ -67,7 +68,7 @@ class Preprocessor:
                     #   which the archive is stored
                     samples_path = self.io.store_in_archive(samples, sentence,
                                                             self.SET_NAME, 'samples')
-                    mspec_path = self.io.store_in_archive(mspec, sentence,
+                    mspec_path = self.io.store_in_archive(log_mspec, sentence,
                                                           self.SET_NAME, 'mspec')
 
                     sentence["samples_path"] = samples_path
@@ -248,11 +249,27 @@ class Preprocessor:
 
         return filename
 
+    def add_noise(self, samples):
+        '''
+        Adds noise drawn from a standard Gaussia to each sample
+        samples: a list of frames*128 samples
+        
+        returns a samples list double the size of the arguement,
+        with the noisy samples appended to the end of it
+        '''
+
+        samples = samples.tolist()
+        for i in range(len(samples)):
+            noise = np.random.standard_normal(np.shape(samples[i]))
+            samples.append(samples[i] + noise)
+
+        return samples
+
 
 if __name__ == '__main__':
-    preprocessor = Preprocessor('train')
+    preprocessor = Preprocessor('test')
     if not preprocessor.path_hierarchy_exists() or (
-            not preprocessor.path_hierarchy_with_features_exists()):
+           not preprocessor.path_hierarchy_with_features_exists()):
         preprocessor.create_hierarchies()
 
     stored_into = preprocessor.transform_data()
