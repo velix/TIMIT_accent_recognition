@@ -2,7 +2,8 @@ import os
 import json
 import numpy as np
 from pysndfile import sndio
-
+from scipy.fftpack import fft
+import scipy.signal as signal
 
 class Constants:
     def __init__(self):
@@ -85,6 +86,200 @@ class Utilities:
         samplingrate = sndobj[1]
         samples = np.array(sndobj[0])*np.iinfo(np.int16).max
         return samples, samplingrate
+
+    def enframe(self, samples, winlen, winshift):
+        """
+        Slices the input samples into overlapping windows.
+
+        Args:
+            winlen: window length in samples.
+            winshift: shift of consecutive windows in samples
+        Returns:
+            numpy array [N x winlen], where N is the number of windows that fit
+            in the input signal
+        """
+        # The window length is sampling_rate*window_length_in_ms
+        length = len(samples)
+        start_indices = np.arange(0, length, winshift)
+        end_indices = np.arange(winlen, length, winlen - winshift)
+        pairs = zip(start_indices, end_indices)
+
+        output = [samples[i[0]: i[1]] for i in pairs]
+
+        # myplot(output, 'Framing')
+
+        return output
+
+    def preemp(self, input, p=0.97):
+        """
+        Pre-emphasis filter.
+
+        Args:
+            input: array of speech frames [N x M] where N is the number
+                of frames and M the samples per frame
+            p: preemhasis factor
+
+        Output:
+            output: array of pre-emphasised speech samples
+        """
+
+        b = np.array([1., -p])
+        a = np.array([1.])
+
+        output = signal.lfilter(b, a, input, axis=1)
+
+        # myplot(output, 'pre-emphasis')
+
+        return output
+
+    def windowing(self, input):
+        """
+        Applies hamming window to the input frames.
+
+        Args:
+            input: array of speech samples [N x M] where N is the
+                number of frames and M the samples per frame
+        Output:
+            array of windowed speech samples [N x M]
+        """
+        N, M = np.shape(input)
+
+        window = signal.hamming(M, sym=0)
+
+        window_axis = lambda sample: sample * window
+
+        output = np.apply_along_axis(window_axis, 1, input)
+
+        # myplot(output, 'Hamming Window')
+
+        return output
+
+    def powerSpectrum(self, input, nfft):
+        """
+        Calculates the power spectrum of the input signal, that is the
+        square of the modulus of the FFT
+
+        Args:
+            input: array of speech samples [N x M] where N is the 
+                number of frames and M the samples per frame
+            nfft: length of the FFT
+        Output:
+            array of power spectra [N x nfft]
+        Note: you can use the function fft from scipy.fftpack
+        """
+        result = fft(input, nfft)
+        result = np.power(np.absolute(result), 2)
+
+        # myplot(result, 'Power Spectogram')
+
+        return result
+
+    def get_power_spectrum(self, samples, winlen=400, winshift=200, preempcoeff=0.97,
+                           nfft=512, nceps=13, samplingrate=20000, liftercoeff=22):
+
+        frames = self.enframe(samples, winlen, winshift)
+        preemph = self.preemp(frames, preempcoeff)
+        windowed = self.windowing(preemph)
+        spec = self.powerSpectrum(windowed, nfft)
+
+        return spec
+
+    def logMelSpectrum(self, input, samplingrate):
+        """
+        Calculates the log output of a Mel filterbank when the input is the power spectrum
+
+        Args:
+            input: array of power spectrum coefficients [N x nfft] where N is the number of frames and
+                nfft the length of each spectrum
+            samplingrate: sampling rate of the original signal (used to calculate the filterbank shapes)
+        Output:
+            array of Mel filterbank log outputs [N x nmelfilters] where nmelfilters is the number
+            of filters in the filterbank
+        Note: use the trfbank function provided in tools.py to calculate the filterbank shapes and
+            nmelfilters
+        """
+        nfft = input.shape[1]
+        N = input.shape[0]
+        # filters: [N, nfft]
+        filters = self.trfbank(samplingrate, nfft)
+
+        # plot Mel filters
+        # plt.plot(filters)
+        # plt.title('Mel filters')
+        # plt.show()
+
+        output = np.zeros((N, filters.shape[0]))
+        for j in range(filters.shape[0]):  # apply each filterbank to the whole power spectrum
+            for i in range(N):
+                output[i, j] = np.log(np.sum(input[i] * filters[j]))
+
+        # myplot(output, 'Filter Banks')
+
+        return output
+
+    def trfbank(self, fs, nfft, lowfreq=133.33, linsc=200/3., logsc=1.0711703,
+                nlinfilt=13, nlogfilt=27, equalareas=False):
+        """Compute triangular filterbank for MFCC computation.
+
+        Inputs:
+        fs:         sampling frequency (rate)
+        nfft:       length of the fft
+        lowfreq:    frequency of the lowest filter
+        linsc:      scale for the linear filters
+        logsc:      scale for the logaritmic filters
+        nlinfilt:   number of linear filters
+        nlogfilt:   number of log filters
+
+        Outputs:
+        res:  array with shape [N, nfft], with filter amplitudes for each column.
+                (N=nlinfilt+nlogfilt)
+        From scikits.talkbox"""
+        # Total number of filters
+        nfilt = nlinfilt + nlogfilt
+
+        #------------------------
+        # Compute the filter bank
+        #------------------------
+        # Compute start/middle/end points of the triangular filters in spectral
+        # domain
+        freqs = np.zeros(nfilt+2)
+        freqs[:nlinfilt] = lowfreq + np.arange(nlinfilt) * linsc
+        freqs[nlinfilt:] = freqs[nlinfilt-1] * logsc ** np.arange(1, nlogfilt + 3)
+        if equalareas:
+            heights = np.ones(nfilt)
+        else:
+            heights = 2./(freqs[2:] - freqs[0:-2])
+
+        # Compute filterbank coeff (in fft domain, in bins)
+        fbank = np.zeros((nfilt, nfft))
+        # FFT bins (in Hz)
+        nfreqs = np.arange(nfft) / (1. * nfft) * fs
+        for i in range(nfilt):
+            low = freqs[i]
+            cen = freqs[i+1]
+            hi = freqs[i+2]
+
+            lid = np.arange(np.floor(low * nfft / fs) + 1,
+                            np.floor(cen * nfft / fs) + 1, dtype=np.int)
+            lslope = heights[i] / (cen - low)
+            rid = np.arange(np.floor(cen * nfft / fs) + 1,
+                            np.floor(hi * nfft / fs) + 1, dtype=np.int)
+            rslope = heights[i] / (hi - cen)
+            fbank[i][lid] = lslope * (nfreqs[lid] - low)
+            fbank[i][rid] = rslope * (hi - nfreqs[rid])
+
+        return fbank
+
+    def get_mspec(self, samples, winlen=400, winshift=200, preempcoeff=0.97,
+                  nfft=512, nceps=13, samplingrate=20000, liftercoeff=22):
+
+        frames = self.enframe(samples, winlen, winshift)
+        preemph = self.preemp(frames, preempcoeff)
+        windowed = self.windowing(preemph)
+        spec = self.powerSpectrum(windowed, nfft)
+        mspec = self.logMelSpectrum(spec, samplingrate)
+
+        return mspec
 
 
 class Logging:
