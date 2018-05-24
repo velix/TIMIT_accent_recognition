@@ -270,16 +270,16 @@ class Preprocessor:
 
 
 if __name__ == '__main__':
-    preprocessor = Preprocessor('test')
+    preprocessor = Preprocessor('train')
     if not preprocessor.path_hierarchy_exists() or (
            not preprocessor.path_hierarchy_with_features_exists()):
         preprocessor.create_hierarchies()
 
-    # stored_into = preprocessor.transform_data()
-    # print("Data store in: ", stored_into)
+    stored_into = preprocessor.transform_data()
+    print("Data store in: ", stored_into)
 
-    # stored_into = preprocessor.standardize_dataset()
-    # print('Dataset standardized data stored into', stored_into)
+    stored_into = preprocessor.standardize_dataset()
+    print('Dataset standardized data stored into', stored_into)
 
-    # stored_into = preprocessor.standardize_speaker()
-    # print('Speaker standardized data stored into', stored_into)
+    stored_into = preprocessor.standardize_speaker()
+    print('Speaker standardized data stored into', stored_into)
