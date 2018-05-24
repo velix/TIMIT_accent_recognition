@@ -22,13 +22,13 @@ class Constants:
         self.FIG_ROOT = os.path.join(self.ROOT, 'fig')
         self._create_dir(self.FIG_ROOT)
 
-        self.PAD_SIZE = 100
-        self.L2_REG_RATE = 0.01
-        self.DROPOUT_RATE = 0.3
+        self.PAD_SIZE = 244
+        self.L2_REG_RATE = 0.00001
+        self.DROPOUT_RATE = 0.5
         self.OUTPUT_SIZE = 8
         self.LEARNING_RATE = 0.001
-        self.BATCH_SIZE = 32
-        self.EPOCHS = 10
+        self.BATCH_SIZE = 64
+        self.EPOCHS = 1000
 
     def _create_dir(self, dir):
         if not os.path.exists(dir):

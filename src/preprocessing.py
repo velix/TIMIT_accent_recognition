@@ -37,12 +37,12 @@ class Preprocessor:
         return os.path.exists(os.path.join(self.co.DATA_ROOT, filename))
 
     def create_hierarchies(self):
-        print('Creating path hierarchy...')
-        hierarchy = self.tim.create_paths_hierarchy()
+        #print('Creating path hierarchy...')
+        #hierarchy = self.tim.create_paths_hierarchy()
 
         print('Exporting path hierarchy...')
         hierarchy_filename = 'timit_{}_path_hierarchy.json'.format(self.SET_NAME)
-        self.io.export_to_json_lines(hierarchy, hierarchy_filename)
+        #self.io.export_to_json_lines(hierarchy, hierarchy_filename)
 
         print('Creating training samples and mspec features...')
         for accent in self.io.import_from_json_lines(hierarchy_filename):
