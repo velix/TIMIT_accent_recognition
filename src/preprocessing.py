@@ -16,12 +16,6 @@ class Preprocessor:
         self.SET_NAME = set_name
         self.co = Constants()
         self.io = DataFiles()
-
-        if self.SET_NAME == 'test':
-            self.tim = TIMIT(test=True)
-        else:
-            self.tim = TIMIT()
-
         self.u = Utilities()
 
     def data_exists(self):
@@ -37,14 +31,27 @@ class Preprocessor:
         return os.path.exists(os.path.join(self.co.DATA_ROOT, filename))
 
     def create_hierarchies(self):
-        #print('Creating path hierarchy...')
-        #hierarchy = self.tim.create_paths_hierarchy()
+
+        hierarchies = []
+        for timit_version in ['timit', 'ffmtimit']:
+            if self.SET_NAME == 'test':
+                self.tim = TIMIT(test=True, timit_version=timit_version)
+            else:
+                self.tim = TIMIT(timit_version=timit_version)
+
+            print('Creating path hierarchy for {}...'.format(timit_version))
+            hierarchy = self.tim.create_paths_hierarchy()
+            hierarchies.append(hierarchy)
+
+        print('Merging the two')
+        # Merges the TIMIT and FFMTIMIT hierarchies
+        full_hierarchy = self.tim.merge_hierarchies(hierarchies[0], hierarchies[1])
 
         print('Exporting path hierarchy...')
         hierarchy_filename = 'timit_{}_path_hierarchy.json'.format(self.SET_NAME)
-        #self.io.export_to_json_lines(hierarchy, hierarchy_filename)
+        self.io.export_to_json_lines(full_hierarchy, hierarchy_filename)
 
-        print('Creating training samples and mspec features...')
+        print('Creating samples and mspec features...')
         for accent in self.io.import_from_json_lines(hierarchy_filename):
             print('\tFor accent: ', accent['accent'])
             speakers = accent['speakers']
@@ -56,19 +63,13 @@ class Preprocessor:
                     audio = sentence['audio']
 
                     samples, samplingrate = self.u.loadAudio(audio)
-                    power_spectrum = self.u.get_power_spectrum(samples)
-                    # mspec = self.u.get_mspec(samples, samplingrate=samplingrate)
-                    mspec = librosa.feature.melspectrogram(S=power_spectrum,
-                                                           sr=samplingrate,
-                                                           n_mels=64)
-                    log_mspec = librosa.core.amplitude_to_db(mspec)
+                    # power_spectrum = self.u.get_power_spectrum(samples)
+                    log_mspec = self.u.get_mspec(samples, samplingrate=samplingrate)
+                    # mspec = librosa.feature.melspectrogram(S=power_spectrum,
+                    #                                        sr=samplingrate,
+                    #                                        n_mels=64)
+                    # log_mspec = librosa.core.amplitude_to_db(mspec)
 
-                    # Stores the param into an npz object
-                    # and returns the path to the stored file.
-                    # sentence['audio'] can give the path of the audio file for
-                    #   the speaker use it to extract accent, speaker and
-                    #   sentence id to construct a hierarchy at the end of
-                    #   which the archive is stored
                     samples_path = self.io.store_in_archive(samples, sentence,
                                                             self.SET_NAME, 'samples')
                     mspec_path = self.io.store_in_archive(log_mspec, sentence,
@@ -275,11 +276,11 @@ if __name__ == '__main__':
            not preprocessor.path_hierarchy_with_features_exists()):
         preprocessor.create_hierarchies()
 
-    stored_into = preprocessor.transform_data()
-    print("Data store in: ", stored_into)
+    # stored_into = preprocessor.transform_data()
+    # print("Data store in: ", stored_into)
 
-    stored_into = preprocessor.standardize_dataset()
-    print('Dataset standardized data stored into', stored_into)
+    # stored_into = preprocessor.standardize_dataset()
+    # print('Dataset standardized data stored into', stored_into)
 
-    stored_into = preprocessor.standardize_speaker()
-    print('Speaker standardized data stored into', stored_into)
+    # stored_into = preprocessor.standardize_speaker()
+    # print('Speaker standardized data stored into', stored_into)

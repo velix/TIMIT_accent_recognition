@@ -5,6 +5,7 @@ from pysndfile import sndio
 from scipy.fftpack import fft
 import scipy.signal as signal
 
+
 class Constants:
     def __init__(self):
 
@@ -17,8 +18,14 @@ class Constants:
         self._create_dir(self.MODELS_ROOT)
 
         self.TIMIT_ROOT = os.path.join(self.ROOT, 'timit', 'timit')
-        self.TRAIN_ROOT = os.path.join(self.TIMIT_ROOT, 'train')
-        self.TEST_ROOT = os.path.join(self.TIMIT_ROOT, 'test')
+        self.FFMTIMIT_ROOT = os.path.join(self.ROOT, 'ffmtimit', 'ffmtimit')
+
+        self.FFMTIMIT_TRAIN_ROOT = os.path.join(self.FFMTIMIT_ROOT, 'train')
+        self.FFMTIMIT_TEST_ROOT = os.path.join(self.FFMTIMIT_ROOT, 'test')
+
+        self.TIMIT_TRAIN_ROOT = os.path.join(self.TIMIT_ROOT, 'train')
+        self.TIMIT_TEST_ROOT = os.path.join(self.TIMIT_ROOT, 'test')
+
         self.FIG_ROOT = os.path.join(self.ROOT, 'fig')
         self._create_dir(self.FIG_ROOT)
 
@@ -168,7 +175,7 @@ class Utilities:
         Note: you can use the function fft from scipy.fftpack
         """
         result = fft(input, nfft)
-        result = np.power(np.absolute(result), 2)
+        result = np.power(np.absolute(result), 2) * (1.0 / nfft)
 
         # myplot(result, 'Power Spectogram')
 
@@ -202,11 +209,6 @@ class Utilities:
         N = input.shape[0]
         # filters: [N, nfft]
         filters = self.trfbank(samplingrate, nfft)
-
-        # plot Mel filters
-        # plt.plot(filters)
-        # plt.title('Mel filters')
-        # plt.show()
 
         output = np.zeros((N, filters.shape[0]))
         for j in range(filters.shape[0]):  # apply each filterbank to the whole power spectrum

@@ -5,13 +5,26 @@ from helper import Constants
 
 class TIMIT:
 
-    def __init__(self, test=False):
+    def __init__(self, test=False, timit_version=None):
         co = Constants()
         self.u = Utilities()
-        if test:
-            self.SET_ROOT = co.TEST_ROOT
-        else:
-            self.SET_ROOT = co.TRAIN_ROOT
+
+        if timit_version:
+            timit_version = timit_version.lower()
+            if timit_version not in ['timit', 'ffmtimit']:
+                raise ValueError('Bad timit version')
+
+            if timit_version == 'timit':
+                if test:
+                    self.SET_ROOT = co.TIMIT_TEST_ROOT
+                else:
+                    self.SET_ROOT = co.TIMIT_TRAIN_ROOT
+
+            elif timit_version == 'ffmtimit':
+                if test:
+                    self.SET_ROOT = co.FFMTIMIT_TEST_ROOT
+                else:
+                    self.SET_ROOT = co.FFMTIMIT_TRAIN_ROOT
 
     def _get_accent_paths(self):
         '''
@@ -136,8 +149,65 @@ class TIMIT:
 
         return sentences
 
+    def _is_subset(self, big, small):
+        # Returns whether big contains all of small
+        return all([el in big for el in small])
+
+    def _return_ordered(self, lst1, lst2):
+        '''
+        Returns first the longer, and second the shorter list
+        '''
+
+        if len(lst1) <= len(lst2):
+            return lst2, lst1
+
+        return lst1, lst2
+
+    def _merge_lists(self, lst1, lst2):
+        return lst1 + lst2
+
+    def merge_hierarchies(self, h1, h2):
+        assert(len(h1) == len(h2))
+
+        new_hierarchy = []
+        for a in range(len(h1)):
+            assert h1[a]['accent'] == h2[a]['accent']
+
+            h1_speakers = h1[a]['speakers']
+            h2_speakers = h2[a]['speakers']
+
+            longer, shorter = self._return_ordered(h1_speakers, h2_speakers)
+
+            new_speakers = []
+            for speaker_dict in longer:
+                speaker_id = speaker_dict['speaker_id']
+
+                for speaker_dict_2 in shorter:
+                    speaker_id_2 = speaker_dict_2['speaker_id']
+
+                    merged_sentences = None
+                    if speaker_id_2 == speaker_id:
+                        merged_sentences = self._merge_lists(
+                                                speaker_dict['sentences'],
+                                                speaker_dict_2['sentences']
+                                                )
+                        continue
+
+                new_speaker = speaker_dict
+                if merged_sentences:
+                    new_speaker['sentences'] = merged_sentences
+                else:
+                    new_speaker['sentences'] = speaker_dict['sentences']
+
+                new_speakers.append(new_speaker)
+
+            new_accent = h1[a]
+            new_accent['speakers'] = new_speakers
+            new_hierarchy.append(new_accent)
+
+        return new_hierarchy
+
 
 if __name__ == '__main__':
     tim = TIMIT()
     hier = tim.create_paths_hierarchy()
-    print(hier)
